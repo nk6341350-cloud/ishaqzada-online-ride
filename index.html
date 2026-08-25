@@ -628,7 +628,9 @@ function persist(){
 if(firebaseReady && firebaseDb){
   firebaseDb.ref("rideAppData").on("value",function(snapshot){
     const remote=snapshot.val();
-    if(remote && Array.isArray(remote.users) && Array.isArray(remote.posts)){
+    if(remote && remote.users!=null && remote.posts!=null){
+      remote.users=Array.isArray(remote.users)?remote.users:Object.values(remote.users||{});
+      remote.posts=Array.isArray(remote.posts)?remote.posts:Object.values(remote.posts||{});
       applyingRemote=true; db=remote;
       try{localStorage.setItem("izride_db",JSON.stringify(db))}catch(_){}
       applyingRemote=false;
@@ -1012,20 +1014,36 @@ window.addEventListener("error",function(e){console.error(e.error||e.message)});
     openModal("💬 پیغامونه","<div class='quick-item'>د پیغامونو برخه فعاله ده. د اعلان له شمېره سره مستقیم تماس کولی شئ.</div>");
   });
 
-  q("btnVerified")?.addEventListener("click",function(){
-    var users=(db.users||[]).filter(function(u){return u.status==="approved" && u.role==="driver" && (u.driverService||"ride")==="ride"});
-    var html=users.length?users.map(function(u){
+  function verifiedRideHtml(source){
+    var raw=(source&&source.users)!=null?source.users:(db.users||[]);
+    var list=Array.isArray(raw)?raw:Object.values(raw||{});
+    var users=list.filter(function(u){return u && u.status==="approved" && u.role==="driver" && (u.driverService||"ride")==="ride"});
+    return users.length?users.map(function(u){
       var maps=(u.lat&&u.lon)?("https://www.google.com/maps?q="+u.lat+","+u.lon):"";
       return "<div class='quick-item'>"+
         (u.vehiclePhoto?"<img src='"+u.vehiclePhoto+"' style='width:100%;height:145px;object-fit:cover;border-radius:12px;margin-bottom:8px'>":"")+
         "<b>"+(u.name||"")+"</b>"+
-        "<div class='muted'>"+("🚕 سواري موټر")+" • "+(u.vehicleType||"")+"</div>"+
+        "<div class='muted'>🚕 سواري موټر • "+(u.vehicleType||"")+"</div>"+
         "<div class='muted'>"+(u.province||"")+" • "+(u.district||"")+"</div>"+
         "<div class='muted'>📱 "+(u.phone||"")+"</div>"+
         (maps?"<a class='btn outline' style='display:block;text-align:center;text-decoration:none;margin-top:8px' href='"+maps+"' target='_blank' rel='noopener'>📍 لوکیشن وګوره</a>":"")+
       "</div>";
     }).join(""):"<div class='quick-item'>تر اوسه تایید شوی موټروان نشته.</div>";
-    openModal("🛡️ تایید شوي موټروانان",html);
+  }
+  q("btnVerified")?.addEventListener("click",function(){
+    openModal("🛡️ تایید شوي موټروانان","<div class='quick-item'>معلومات تازه کېږي...</div>");
+    if(firebaseReady&&firebaseDb){
+      firebaseDb.ref("rideAppData").once("value").then(function(snapshot){
+        var remote=snapshot.val();
+        if(remote){
+          var ru=Array.isArray(remote.users)?remote.users:Object.values(remote.users||{});
+          var rp=Array.isArray(remote.posts)?remote.posts:Object.values(remote.posts||{});
+          db={users:ru,posts:rp,feeMode:!!remote.feeMode};
+          try{localStorage.setItem("izride_db",JSON.stringify(db))}catch(_){}
+        }
+        document.getElementById("quickBody").innerHTML=verifiedRideHtml(db);
+      }).catch(function(){document.getElementById("quickBody").innerHTML=verifiedRideHtml(db);});
+    }else document.getElementById("quickBody").innerHTML=verifiedRideHtml(db);
   });
 
   document.querySelectorAll(".vehicle-button").forEach(function(card){
