@@ -328,6 +328,42 @@ document.addEventListener("click",function(e){ if(e.target && e.target.id==="dri
 <meta name="apple-mobile-web-app-title" content="Ishaqzada Ride">
 <meta name="application-name" content="Ishaqzada Ride">
 
+
+<style id="persistent-header-fix">
+html,body{scroll-padding-top:82px!important}
+header{
+  position:sticky!important;
+  top:0!important;
+  z-index:100000!important;
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  transform:none!important;
+}
+.head{
+  display:grid!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+.brand-logo,.brand,.brand b,.brand small{
+  visibility:visible!important;
+  opacity:1!important;
+}
+@supports (padding-top: env(safe-area-inset-top)){
+  header{
+    padding-top:calc(9px + env(safe-area-inset-top))!important;
+  }
+}
+@media (display-mode: standalone){
+  header{
+    position:sticky!important;
+    top:0!important;
+    z-index:100000!important;
+    display:block!important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div class="app">
@@ -1167,6 +1203,23 @@ ${u.vehiclePhoto?`<img src="${u.vehiclePhoto}" alt="د موټر عکس">`:`<div 
       return oldFind("ride",lat,lon,vehicleType);
     };
   }
+})();
+</script>
+
+
+<script id="header-visibility-guard">
+(function(){
+  function keepHeader(){
+    var h=document.querySelector('header');
+    if(!h) return;
+    h.style.display='block';
+    h.style.visibility='visible';
+    h.style.opacity='1';
+    h.style.transform='none';
+  }
+  document.addEventListener('DOMContentLoaded',keepHeader);
+  window.addEventListener('pageshow',keepHeader);
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden) keepHeader(); });
 })();
 </script>
 
