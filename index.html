@@ -1087,14 +1087,31 @@ window.addEventListener("error",function(e){console.error(e.error||e.message)});
 (function(){
 function dist(a,b,c,d){const R=6371,q=x=>x*Math.PI/180,dl=q(c-a),dn=q(d-b),x=Math.sin(dl/2)**2+Math.cos(q(a))*Math.cos(q(c))*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
 function esc(x){return String(x??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]))}
-window.findNearbyDrivers=function(service,lat,lon,vehicleType){return (db.users||[]).filter(u=>u.role==='driver'&&u.status==='approved'&&(u.driverService||'ride')===service&&u.lat&&u.lon&&(!vehicleType||u.vehicleType===vehicleType)).map(u=>({...u,_km:dist(+lat,+lon,+u.lat,+u.lon)})).sort((a,b)=>a._km-b._km)};
+window.findNearbyDrivers=function(service,lat,lon,vehicleType){
+  const a=Number(lat), b=Number(lon);
+  return (db.users||[])
+    .filter(u=>u&&u.role==='driver'&&u.status==='approved'&&(u.driverService||'ride')===service&&Number.isFinite(Number(u.lat))&&Number.isFinite(Number(u.lon)))
+    .map(u=>({...u,_km:dist(a,b,Number(u.lat),Number(u.lon))}))
+    .sort((x,y)=>x._km-y._km);
+};
+window.refreshRideData=function(){
+  if(!(firebaseReady&&firebaseDb)) return Promise.resolve(db);
+  return firebaseDb.ref('rideAppData').once('value').then(function(snapshot){
+    const remote=snapshot.val();
+    if(remote){
+      db={users:Array.isArray(remote.users)?remote.users:Object.values(remote.users||{}),posts:Array.isArray(remote.posts)?remote.posts:Object.values(remote.posts||{}),feeMode:!!remote.feeMode};
+      try{localStorage.setItem('izride_db',JSON.stringify(db))}catch(_){}
+    }
+    return db;
+  }).catch(function(){return db});
+};
 window.chooseNearbyDriver=function(reqId,driverId){let r=(db.posts||[]).find(x=>x.id===reqId),u=(db.users||[]).find(x=>x.id===driverId);if(!r||!u)return;r.driverId=u.id;r.driverName=u.name;r.driverPhone=u.phone;r.status='selected';r.messages=r.messages||[];r.messages.push('موټروان انتخاب شو: '+u.name);persist();showMatchedTrip(reqId);toast('موټروان انتخاب شو — اوس پیغام یا زنګ کولی شئ')};
 window.showMatchedTrip=function(reqId){let r=(db.posts||[]).find(x=>x.id===reqId);if(!r)return;let u=(db.users||[]).find(x=>x.id===r.driverId);let body=document.getElementById('quickBody');if(!body||!u)return;let km=(u.lat&&u.lon&&r.lat&&r.lon)?dist(+r.lat,+r.lon,+u.lat,+u.lon).toFixed(1):'';body.innerHTML=`<div class="nearby-driver">${u.vehiclePhoto?`<img src="${u.vehiclePhoto}">`:''}<h3>${esc(u.name)}</h3><div>${esc(u.vehicleType)} • 📱 ${esc(u.phone)}</div><div class="trip-badge">${r.status==='coming'?'🚗 در روان دی':r.status==='arrived'?'✅ راورسېد':'🤝 انتخاب شوی'} ${km?'• شاوخوا '+km+' km':''}</div><div class="live-box">📍 د موټروان اوسنی ځای: ${esc(u.locationText||'')} ${u.lat?'('+Number(u.lat).toFixed(6)+', '+Number(u.lon).toFixed(6)+')':'نه شته'}<div class="live-actions"><a class="btn outline" href="https://www.google.com/maps?q=${u.lat},${u.lon}" target="_blank" style="text-decoration:none;text-align:center">نقشه</a><a class="btn gold" href="tel:${esc(u.phone)}" style="text-decoration:none;text-align:center">📞 زنګ</a></div></div><textarea id="liveMsg" placeholder="پیغام ولیکه..."></textarea><button class="btn gold" style="width:100%;margin-top:8px" onclick="sendTripMsg(${r.id})">💬 پیغام ثبت کړه</button></div>`};
 window.sendTripMsg=function(id){let r=(db.posts||[]).find(x=>x.id===id),t=document.getElementById('liveMsg');if(!r||!t.value.trim())return;r.messages=r.messages||[];r.messages.push(t.value.trim());persist();t.value='';toast('پیغام ثبت شو')};
 window.startDriverLive=function(reqId){let id=Number(localStorage.getItem('iz_ride_driver_login')),u=(db.users||[]).find(x=>x.id===id),r=(db.posts||[]).find(x=>x.id===reqId);if(!u||!r)return toast('لومړی د موټروان ننوتل ته ننوځه');if(!navigator.geolocation)return toast('GPS نشته');r.driverId=u.id;r.status='coming';persist();if(window._izWatch)navigator.geolocation.clearWatch(window._izWatch);window._izWatch=navigator.geolocation.watchPosition(p=>{u.lat=p.coords.latitude;u.lon=p.coords.longitude;u.liveAt=Date.now();persist();renderDriverProfile()},()=>toast('د لوکیشن اجازه فعاله کړه'),{enableHighAccuracy:true,maximumAge:3000,timeout:15000});toast('لایو لوکیشن پیل شو — در روان یم')};
 window.stopDriverLive=function(reqId){let r=(db.posts||[]).find(x=>x.id===reqId);if(r){r.status='arrived';persist()}if(window._izWatch){navigator.geolocation.clearWatch(window._izWatch);window._izWatch=null}toast('راورسېدم ثبت شو');renderDriverProfile()};
 const oldProfile=window.renderDriverProfile;window.renderDriverProfile=function(){oldProfile&&oldProfile();let box=document.getElementById('driverProfile'),id=Number(localStorage.getItem('iz_ride_driver_login'));if(!box||!id)return;let reqs=(db.posts||[]).filter(r=>r.driverId===id&&r.status!=='arrived');if(reqs.length)box.insertAdjacentHTML('beforeend',reqs.map(r=>`<div class="card"><b>📍 نوی سفر</b><div class="muted">${esc(r.to||r.dropoff||'')}</div><div class="live-actions"><button class="btn gold" onclick="startDriverLive(${r.id})">🚗 در روان یم</button><button class="btn outline" onclick="stopDriverLive(${r.id})">✅ راورسېدم</button></div><a class="btn outline" style="display:block;text-align:center;text-decoration:none;margin-top:8px" target="_blank" href="https://www.google.com/maps?q=${r.lat},${r.lon}">📍 د مشتری لوکیشن</a></div>`).join(''))};
-const oldSaveRide=window.saveRide;window.saveRide=function(){const before=(db.posts||[]).length;oldSaveRide();if((db.posts||[]).length<=before)return;let r=db.posts[0];let arr=findNearbyDrivers('ride',r.lat,r.lon,r.vehicleType);document.getElementById('quickTitle').textContent='🚕 نږدې موټرونه';document.getElementById('quickBody').innerHTML=arr.length?arr.map(u=>`<div class="nearby-driver">
+const oldSaveRide=window.saveRide;window.saveRide=function(){const before=(db.posts||[]).length;oldSaveRide();if((db.posts||[]).length<=before)return;let r=db.posts[0];document.getElementById('quickTitle').textContent='🚕 نږدې موټرونه';document.getElementById('quickBody').innerHTML='<div class="quick-item">📍 د GPS له لارې نږدې موټروانان لټول کېږي...</div>';document.getElementById('quickModal').classList.remove('hidden');refreshRideData().then(function(){let arr=findNearbyDrivers('ride',r.lat,r.lon,r.vehicleType);document.getElementById('quickBody').innerHTML=arr.length?arr.map(u=>`<div class="nearby-driver">
 ${u.vehiclePhoto?`<img src="${u.vehiclePhoto}" alt="د موټر عکس">`:`<div class="quick-item" style="text-align:center">🚗 د موټر عکس نشته</div>`}
 <h3 style="margin:8px 0 4px">${esc(u.name)}</h3>
 <div class="muted">🚘 ${esc(u.vehicleType||'موټر')} • 📱 ${esc(u.phone||'')}</div>
@@ -1104,7 +1121,7 @@ ${u.vehiclePhoto?`<img src="${u.vehiclePhoto}" alt="د موټر عکس">`:`<div 
 <a class="btn outline" target="_blank" rel="noopener" style="text-decoration:none;text-align:center" href="https://www.google.com/maps?q=${u.lat},${u.lon}">📍 د موټروان ځای</a>
 <button class="btn gold" onclick="chooseNearbyDriver(${r.id},${u.id})">دا موټر انتخاب کړه</button>
 </div>
-</div>`).join(''):'<div class="quick-item">اوس نږدې تایید شوی موټر ونه موندل شو.</div>';document.getElementById('quickModal').classList.remove('hidden')};
+</div>`).join(''):'<div class="quick-item">اوس د GPS له مخې تایید شوی موټر ونه موندل شو. موټروان باید خپل لوکیشن ثبت/تازه کړي.</div>';document.getElementById('quickModal').classList.remove('hidden')})};
 const oldCargo=window.openCargoDriverFinder;window.openCargoDriverFinder=function(){if(!navigator.geolocation){return oldCargo&&oldCargo()}toast('ستاسو لوکیشن اخلو...');navigator.geolocation.getCurrentPosition(p=>{let arr=findNearbyDrivers('cargo',p.coords.latitude,p.coords.longitude,'');let rid=Date.now();db.posts.unshift({id:rid,mode:'load',lat:p.coords.latitude,lon:p.coords.longitude,from:'GPS',to:'',phone:'',status:'waiting',messages:[]});persist();document.getElementById('quickTitle').textContent='🚚 نږدې بار موټرونه';document.getElementById('quickBody').innerHTML=arr.length?arr.map(u=>`<div class="nearby-driver">
 ${u.vehiclePhoto?`<img src="${u.vehiclePhoto}" alt="د موټر عکس">`:`<div class="quick-item" style="text-align:center">🚚 د موټر عکس نشته</div>`}
 <h3 style="margin:8px 0 4px">${esc(u.name)}</h3>
