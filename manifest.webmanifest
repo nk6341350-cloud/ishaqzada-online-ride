@@ -1,7 +1,7 @@
 {
-  "name": "Ishaqzada Online Ride",
-  "short_name": "Ishaqzada Ride",
-  "description": "اسحاقزاده آنلاین سواري",
+  "name": "Ishaqzada Online Services",
+  "short_name": "Ishaqzada",
+  "description": "سواري، باربري او کاریګر — درې خدمات په یوه اپلیکیشن کې",
   "lang": "ps",
   "dir": "rtl",
   "start_url": "./index.html",

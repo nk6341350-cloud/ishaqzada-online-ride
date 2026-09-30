@@ -368,6 +368,12 @@ header{
 </header>
 
 <main id="home" class="page active">
+<div id="threeProjects" class="three-projects" dir="rtl">
+  <button type="button" class="project-card active" data-project="ride"><span>🚕</span><b>سواري</b><small>ټکسي، رکشه او کرایي موټر</small></button>
+  <button type="button" class="project-card" data-project="bar"><span>🚚</span><b>باربري</b><small>زرنج، مازدا، پیکپ، لارۍ او ټېلر</small></button>
+  <button type="button" class="project-card" data-project="worker"><span>👷</span><b>کاریګر</b><small>مستري، برېښناکار، نلدوان او نور</small></button>
+</div>
+
 
   <section class="section" style="padding-top:14px">
     <div class="section-title"><h2 data-t="chooseService">خدمت وټاکئ</h2><small data-t="allAf">ټول افغانستان</small></div>
@@ -501,6 +507,27 @@ header{
       <button type="button" class="btn outline" data-t="installFull">⬇ اپلیکیشن نصب کړه</button>
     </div>
   </section>
+
+<section class="section hidden" id="workerService" dir="rtl">
+  <div class="section-title"><h2>👷 کاریګر پیدا کړه</h2><span class="pill">ټول افغانستان</span></div>
+  <div class="worker-grid">
+    <button type="button" class="worker-kind" data-work="مستري">🔧<b>مستري</b></button>
+    <button type="button" class="worker-kind" data-work="برېښناکار">⚡<b>برېښناکار</b></button>
+    <button type="button" class="worker-kind" data-work="نلدوان">🚰<b>نلدوان</b></button>
+    <button type="button" class="worker-kind" data-work="نجار">🪚<b>نجار</b></button>
+    <button type="button" class="worker-kind" data-work="رنګمال">🎨<b>رنګمال</b></button>
+    <button type="button" class="worker-kind" data-work="ویلډر">🧰<b>ویلډر</b></button>
+    <button type="button" class="worker-kind" data-work="خښته کار">🧱<b>خښته کار</b></button>
+    <button type="button" class="worker-kind" data-work="نور کاریګر">👷<b>نور کاریګر</b></button>
+  </div>
+  <div class="card worker-find-card">
+    <label><span>ولایت</span><select id="workerProvince"></select></label>
+    <label><span>ولسوالي / ښار</span><input id="workerDistrict" placeholder="ولسوالي یا ښار"></label>
+    <input type="hidden" id="workerProfession">
+    <button type="button" class="btn gold" id="findWorkerBtn">👷 کاریګر پیدا کړه</button>
+    <div id="workerResults"></div>
+  </div>
+</section>
 </main>
 
 <main id="post" class="page">
@@ -1209,6 +1236,43 @@ ${u.vehiclePhoto?`<img src="${u.vehiclePhoto}" alt="د موټر عکس">`:`<div 
   document.addEventListener('DOMContentLoaded',keepHeader);
   window.addEventListener('pageshow',keepHeader);
   document.addEventListener('visibilitychange',function(){ if(!document.hidden) keepHeader(); });
+})();
+</script>
+
+
+<style id="three-services-addon">
+.three-projects{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:4px 0 14px}.project-card{border:1px solid rgba(255,255,255,.18);background:linear-gradient(145deg,#15283d,#0d1b2a);color:#fff;border-radius:18px;padding:12px 7px;min-height:92px;box-shadow:0 9px 22px rgba(0,0,0,.18)}.project-card span{display:block;font-size:28px}.project-card b{display:block;font-size:16px;margin:3px 0}.project-card small{display:block;font-size:10px;opacity:.78;line-height:1.4}.project-card.active{outline:2px solid #f6bb2d;background:linear-gradient(145deg,#243e59,#10243a)}.worker-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.worker-kind{background:#fff;border:1px solid #e8d8a0;border-radius:14px;min-height:76px;font-size:25px;padding:8px;color:#102238}.worker-kind b{display:block;font-size:12px;margin-top:5px}.worker-kind.active{outline:2px solid #e6aa18;background:#fff7dc}.worker-find-card{margin-top:12px}.worker-find-card label{display:block;margin:8px 0}.worker-find-card .btn{width:100%;margin-top:8px}.worker-result{margin-top:10px;padding:10px;border-radius:14px;background:#fff;border:1px solid #eee}.worker-result img{width:100%;height:135px;object-fit:cover;border-radius:11px;margin-bottom:7px}@media(max-width:520px){.three-projects{gap:6px}.project-card{min-height:86px;padding:9px 5px}.project-card b{font-size:14px}.project-card small{font-size:9px}.worker-grid{grid-template-columns:repeat(4,1fr);gap:6px}.worker-kind{font-size:22px;padding:6px;min-height:70px}.worker-kind b{font-size:11px}}
+</style>
+<script id="three-services-system">
+(function(){
+ const professions=["مستري","برېښناکار","نلدوان","نجار","رنګمال","ویلډر","خښته کار","کاشي کار","پلستر کار","یخچال مستري","موبایل مستري","موټر مستري","نور کاریګر"];
+ const cargo=["زرنج","سوزوکي","مازدا باډي والا","پیکپ","لارۍ","لس ټایره","ټېلر"];
+ const ride=["ښاري ټکسي","رکشه","کرایي موټر"];
+ function project(type){
+   document.querySelectorAll('.project-card').forEach(b=>b.classList.toggle('active',b.dataset.project===type));
+   const bar=document.getElementById('barService'), r=document.getElementById('rideService'), w=document.getElementById('workerService');
+   if(bar)bar.classList.toggle('hidden',type!=='bar'); if(r)r.classList.toggle('hidden',type!=='ride'); if(w)w.classList.toggle('hidden',type!=='worker');
+ }
+ document.querySelectorAll('.project-card').forEach(b=>b.addEventListener('click',()=>project(b.dataset.project)));
+ const service=document.getElementById('regDriverService'), vehicle=document.getElementById('regVehicleType');
+ if(service){service.innerHTML='<option value="ride">🚕 سواري</option><option value="cargo">🚚 باربري</option><option value="worker">👷 کاریګر</option>';}
+ function regType(){
+   if(!service||!vehicle)return; const t=service.value; const arr=t==='cargo'?cargo:t==='worker'?professions:ride;
+   vehicle.innerHTML='<option value="">'+(t==='worker'?'مسلک وټاکئ':'ډول وټاکئ')+'</option>'+arr.map(x=>'<option>'+x+'</option>').join('');
+   const labels=[...document.querySelectorAll('#account label')];
+   labels.forEach(l=>{const sp=l.querySelector('span');if(!sp)return;if(sp.textContent.trim()==='د موټر ډول'||sp.dataset.dynamicType==='1'){sp.dataset.dynamicType='1';sp.textContent=t==='worker'?'مسلک / د کار ډول':'د موټر ډول';} if(sp.textContent.trim()==='د موټر عکس'||sp.dataset.dynamicPhoto==='1'){sp.dataset.dynamicPhoto='1';sp.textContent=t==='worker'?'د کار یا مسلک عکس':'د موټر عکس';}});
+ }
+ service?.addEventListener('change',regType); regType();
+ const wp=document.getElementById('workerProvince'); if(wp){wp.innerHTML='<option value="">ولایت وټاکئ</option>'+provincesPs.map(x=>'<option>'+x+'</option>').join('');}
+ document.querySelectorAll('.worker-kind').forEach(b=>b.addEventListener('click',function(){document.querySelectorAll('.worker-kind').forEach(x=>x.classList.remove('active'));this.classList.add('active');document.getElementById('workerProfession').value=this.dataset.work;}));
+ function esc2(v){return String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+ document.getElementById('findWorkerBtn')?.addEventListener('click',function(){
+   const p=wp?.value||'',d=document.getElementById('workerDistrict')?.value.trim()||'',job=document.getElementById('workerProfession')?.value||'';
+   let a=(db.users||[]).filter(u=>u.status==='approved'&&u.role==='driver'&&u.driverService==='worker'); if(p)a=a.filter(u=>u.province===p);if(d)a=a.filter(u=>(u.district||'').includes(d));if(job)a=a.filter(u=>u.vehicleType===job);
+   const box=document.getElementById('workerResults'); if(!a.length){box.innerHTML='<div class="worker-result">په دې سیمه کې تر اوسه تایید شوی کاریګر نشته.</div>';return;}
+   box.innerHTML=a.map(u=>'<div class="worker-result">'+(u.vehiclePhoto?'<img src="'+u.vehiclePhoto+'">':'')+'<b>'+esc2(u.name)+'</b><br><span class="muted">'+esc2(u.vehicleType)+' • '+esc2(u.province)+' • '+esc2(u.district)+'</span><div class="installbar"><a class="btn gold" href="tel:'+esc2(u.phone)+'" style="text-decoration:none;text-align:center">📞 زنګ</a><a class="btn outline" href="sms:'+esc2(u.phone)+'" style="text-decoration:none;text-align:center">💬 پیغام</a></div></div>').join('');
+ });
+ window.ishaqzadaProject=project; project('ride');
 })();
 </script>
 

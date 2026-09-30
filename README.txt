@@ -1,11 +1,4 @@
-Ishaqzada Online Ride - complete PWA package
+Ishaqzada Online Services — سواري + باربري + کاریګر
 
-GitHub ته دا فایلونه ټول یو ځای upload کړئ:
-1. index.html
-2. manifest.webmanifest
-3. sw.js
-4. icon-192.png
-5. icon-512.png
-
-مهم: فایلونه د repository په root کې واچوئ.
-Firebase تنظیمات په index.html کې هماغسې ساتل شوي دي.
+Upload all files together to the same GitHub Pages repository root.
+Existing ride system is preserved; cargo and worker service selectors are added.
