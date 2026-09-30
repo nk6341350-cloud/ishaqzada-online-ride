@@ -217,25 +217,14 @@ header{padding:9px 10px!important}
 }
 </style>
 
-<meta name="app-version" content="buttons-fix-20260825-0308-cache-reset">
+<meta name="app-version" content="PWA-COMPLETE-20261001">
 <script>
-(function(){
-  try{
-    if("serviceWorker" in navigator){
-      navigator.serviceWorker.getRegistrations().then(function(rs){
-        rs.forEach(function(r){ r.unregister(); });
-      });
-    }
-    if("caches" in window){
-      caches.keys().then(function(keys){
-        keys.forEach(function(k){ caches.delete(k); });
-      });
-    }
-  }catch(e){}
-})();
-
-
 document.addEventListener("click",function(e){ if(e.target && e.target.id==="driverLocationBtn") captureDriverLocation(); if(e.target && e.target.id==="driverLoginBtn") driverLogin(); });
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("./sw.js").catch(function(e){ console.warn("Service worker registration failed", e); });
+  });
+}
 </script>
 
 <meta name="app-version" content="buttons-final-20260825-1244">
