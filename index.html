@@ -1242,6 +1242,9 @@ ${u.vehiclePhoto?`<img src="${u.vehiclePhoto}" alt="د موټر عکس">`:`<div 
 
 <style id="three-services-addon">
 .three-projects{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:4px 0 14px}.project-card{border:1px solid rgba(255,255,255,.18);background:linear-gradient(145deg,#15283d,#0d1b2a);color:#fff;border-radius:18px;padding:12px 7px;min-height:92px;box-shadow:0 9px 22px rgba(0,0,0,.18)}.project-card span{display:block;font-size:28px}.project-card b{display:block;font-size:16px;margin:3px 0}.project-card small{display:block;font-size:10px;opacity:.78;line-height:1.4}.project-card.active{outline:2px solid #f6bb2d;background:linear-gradient(145deg,#243e59,#10243a)}.worker-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.worker-kind{background:#fff;border:1px solid #e8d8a0;border-radius:14px;min-height:76px;font-size:25px;padding:8px;color:#102238}.worker-kind b{display:block;font-size:12px;margin-top:5px}.worker-kind.active{outline:2px solid #e6aa18;background:#fff7dc}.worker-find-card{margin-top:12px}.worker-find-card label{display:block;margin:8px 0}.worker-find-card .btn{width:100%;margin-top:8px}.worker-result{margin-top:10px;padding:10px;border-radius:14px;background:#fff;border:1px solid #eee}.worker-result img{width:100%;height:135px;object-fit:cover;border-radius:11px;margin-bottom:7px}@media(max-width:520px){.three-projects{gap:6px}.project-card{min-height:86px;padding:9px 5px}.project-card b{font-size:14px}.project-card small{font-size:9px}.worker-grid{grid-template-columns:repeat(4,1fr);gap:6px}.worker-kind{font-size:22px;padding:6px;min-height:70px}.worker-kind b{font-size:11px}}
+.project-hidden{display:none!important}
+#barService,#workerService{padding-top:14px}
+#barService:not(.hidden),#workerService:not(.hidden){display:block!important;min-height:65vh}
 </style>
 <script id="three-services-system">
 (function(){
@@ -1250,8 +1253,32 @@ ${u.vehiclePhoto?`<img src="${u.vehiclePhoto}" alt="د موټر عکس">`:`<div 
  const ride=["ښاري ټکسي","رکشه","کرایي موټر"];
  function project(type){
    document.querySelectorAll('.project-card').forEach(b=>b.classList.toggle('active',b.dataset.project===type));
-   const bar=document.getElementById('barService'), r=document.getElementById('rideService'), w=document.getElementById('workerService');
-   if(bar)bar.classList.toggle('hidden',type!=='bar'); if(r)r.classList.toggle('hidden',type!=='ride'); if(w)w.classList.toggle('hidden',type!=='worker');
+   const home=document.getElementById('home');
+   const switcher=document.getElementById('threeProjects');
+   const bar=document.getElementById('barService'), w=document.getElementById('workerService');
+   // Keep the original Ride page untouched. Move only the two added service panels
+   // to the top level so they can be shown as real separate pages.
+   if(home&&switcher){
+     if(bar && bar.parentElement!==home) home.insertBefore(bar,switcher.nextSibling);
+     if(w && w.parentElement!==home) home.insertBefore(w,switcher.nextSibling);
+     Array.from(home.children).forEach(function(el){
+       if(el===switcher) return;
+       if(type==='ride'){
+         if(el===bar||el===w) el.classList.add('hidden');
+         else el.classList.remove('project-hidden');
+       }else if(type==='bar'){
+         if(el===bar){el.classList.remove('hidden');el.classList.remove('project-hidden');}
+         else if(el===w){el.classList.add('hidden');}
+         else el.classList.add('project-hidden');
+       }else if(type==='worker'){
+         if(el===w){el.classList.remove('hidden');el.classList.remove('project-hidden');}
+         else if(el===bar){el.classList.add('hidden');}
+         else el.classList.add('project-hidden');
+       }
+     });
+   }
+   document.documentElement.dataset.project=type;
+   window.scrollTo({top:0,behavior:'smooth'});
  }
  document.querySelectorAll('.project-card').forEach(b=>b.addEventListener('click',()=>project(b.dataset.project)));
  const service=document.getElementById('regDriverService'), vehicle=document.getElementById('regVehicleType');
@@ -1263,6 +1290,22 @@ ${u.vehiclePhoto?`<img src="${u.vehiclePhoto}" alt="د موټر عکس">`:`<div 
    labels.forEach(l=>{const sp=l.querySelector('span');if(!sp)return;if(sp.textContent.trim()==='د موټر ډول'||sp.dataset.dynamicType==='1'){sp.dataset.dynamicType='1';sp.textContent=t==='worker'?'مسلک / د کار ډول':'د موټر ډول';} if(sp.textContent.trim()==='د موټر عکس'||sp.dataset.dynamicPhoto==='1'){sp.dataset.dynamicPhoto='1';sp.textContent=t==='worker'?'د کار یا مسلک عکس':'د موټر عکس';}});
  }
  service?.addEventListener('change',regType); regType();
+
+ const barPanel=document.getElementById('barService');
+ if(barPanel && !barPanel.querySelector('.project-actions')){
+   const a=document.createElement('div');a.className='installbar project-actions';
+   a.innerHTML='<button type="button" class="btn gold" id="cargoPostBtn">📦 بار ثبت کړه</button><button type="button" class="btn outline" id="cargoDriverBtn">🚚 د باربري موټروان حساب</button>';
+   barPanel.appendChild(a);
+   a.querySelector('#cargoPostBtn').onclick=function(){document.querySelector('nav button:nth-child(2)')?.click();};
+   a.querySelector('#cargoDriverBtn').onclick=function(){document.querySelector('nav button:nth-child(3)')?.click();setTimeout(function(){if(service){service.value='cargo';regType();}},80);};
+ }
+ const workerPanel=document.getElementById('workerService');
+ if(workerPanel && !workerPanel.querySelector('.worker-register-action')){
+   const a=document.createElement('div');a.className='installbar worker-register-action';
+   a.innerHTML='<button type="button" class="btn outline" id="workerRegisterBtn">👷 د کاریګر حساب جوړ کړه</button>';
+   workerPanel.appendChild(a);
+   a.querySelector('#workerRegisterBtn').onclick=function(){document.querySelector('nav button:nth-child(3)')?.click();setTimeout(function(){if(service){service.value='worker';regType();}},80);};
+ }
  const wp=document.getElementById('workerProvince'); if(wp){wp.innerHTML='<option value="">ولایت وټاکئ</option>'+provincesPs.map(x=>'<option>'+x+'</option>').join('');}
  document.querySelectorAll('.worker-kind').forEach(b=>b.addEventListener('click',function(){document.querySelectorAll('.worker-kind').forEach(x=>x.classList.remove('active'));this.classList.add('active');document.getElementById('workerProfession').value=this.dataset.work;}));
  function esc2(v){return String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
