@@ -689,7 +689,7 @@ function persist(){
 if(firebaseReady && firebaseDb){
   firebaseDb.ref("rideAppData").on("value",function(snapshot){
     const remote=snapshot.val();
-    if(remote && remote.users!=null && remote.posts!=null){
+    if(remote && typeof remote === "object"){
       remote.users=Array.isArray(remote.users)?remote.users:Object.values(remote.users||{});
       remote.posts=Array.isArray(remote.posts)?remote.posts:Object.values(remote.posts||{});
       applyingRemote=true; db=remote;
