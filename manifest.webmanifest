@@ -1,6 +1,6 @@
 {
-  "name": "Ishaqzada Online Services",
-  "short_name": "Ishaqzada",
+  "name": "اسحاقزاده انلاین خدمات | Ishaqzada Online Services",
+  "short_name": "اسحاقزاده خدمات",
   "description": "سواري، باربري او کاریګر — درې خدمات په یوه اپلیکیشن کې",
   "lang": "ps",
   "dir": "rtl",
@@ -11,16 +11,16 @@
   "theme_color": "#061521",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "services-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "icon-512.png",
+      "src": "services-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
