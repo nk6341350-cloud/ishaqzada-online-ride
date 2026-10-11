@@ -1399,13 +1399,69 @@ ${u.vehiclePhoto?`<img src="${u.vehiclePhoto}" alt="د موټر عکس">`:`<div 
  // Keep the ride page and its existing handlers unchanged; only prepare the shared account form when a non-ride project is selected.
  document.querySelectorAll('.project-card').forEach(b=>b.addEventListener('click',()=>{const s=b.dataset.project==='bar'?'cargo':b.dataset.project;const select=$('regDriverService');select.disabled=s==='ride';select.value=s;select.dispatchEvent(new Event('change'));}));
  if(firebaseReady&&firebaseDb)firebaseDb.ref('rideAppData').on('value',()=>setTimeout(renderAll,0));
+ // Reuse the ride page's exact section classes and ordering for both services.
+ Object.entries(configs).forEach(([s,c])=>{
+  const panel=$(c.panel), worker=s==='worker';
+  const make=(tag,cls,html)=>{const e=document.createElement(tag);e.className=cls;if(html)e.innerHTML=html;return e;};
+  const title=(text,note)=>make('div','section-title',`<h2>${text}</h2><small>${note}</small>`);
+  const intro=panel.querySelector('.service-box'),form=panel.querySelector('.service-form');
+  const topCards=[...panel.querySelectorAll('.service-card')];
+  const typeCards=[...panel.querySelectorAll('.type-card')];
+  const find=$(c.p+'Find'),message=$(c.p+'Msg'),register=$(c.p+'Register'),requests=$(c.requests);
+  const quick=[...panel.querySelectorAll('.quick4 button')];
+  panel.className='hidden service-parity';
+  const top=make('section','section');top.style.paddingTop='14px';top.dataset.part='showcase';
+  top.append(title('خدمت وټاکئ','ټول افغانستان'));
+  const choice=make('div','service-choice ride-only-choice'),showcase=make('div','service-big active matched-showcase');
+  const show=make('div','ride-showcase',`<div class="ride-showcase-title">${worker?'👷':'🚚'} اسحاقزاده آنلاین ${c.title}</div>`);
+  const photos=make('div','ride-showcase-cars');
+  topCards.forEach(card=>{card.className='showcase-car';const b=card.querySelector('b');const span=make('span','');span.textContent=b.textContent;b.replaceWith(span);photos.append(card);});
+  // Existing category handlers read a b element, so bind the adapted showcase labels directly.
+  topCards.forEach(card=>{card.onclick=()=>{$(c.kind).value=card.querySelector('span').textContent;form.scrollIntoView({behavior:'smooth',block:'center'});};card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();card.click();}};});
+  show.append(photos);showcase.append(show);choice.append(showcase);top.append(choice);
+  const hero=make('section','hero hero-fixed');hero.dataset.part='hero';
+  const headline=intro.querySelector('h2').textContent,sub=intro.querySelector('.goldline').textContent,description=intro.querySelector('p').textContent;
+  hero.append(make('div','hero-copy',`<h1><span>${headline}</span><br><em>${sub}</em></h1><p>${description}</p>`));
+  const heroPhotos=make('div','hero-real-photos');topCards.slice(0,2).forEach(card=>{const picture=card.querySelector('img,.service-photo-fallback').cloneNode(true);heroPhotos.append(picture);});hero.append(heroPhotos);
+  const actions=make('div','hero-actions hero-actions-fixed'),jump=make('button','btn gold',`${worker?'👷':'🚚'} ${c.person} پیدا کړه`);jump.type='button';jump.onclick=()=>form.scrollIntoView({behavior:'smooth',block:'center'});register.textContent=`د ${c.person} ننوتل`;actions.append(jump,register);hero.append(actions);
+  const shortcuts=make('section','section');shortcuts.dataset.part='shortcuts';const buttons=make('div','services');quick.forEach(b=>{b.className='service';const i=b.querySelector('i');const icon=make('span','');icon.textContent=i.textContent;const label=make('b','');label.textContent=b.textContent.replace(i.textContent,'').trim();b.replaceChildren(icon,label);buttons.append(b);});shortcuts.append(buttons);
+  const booking=make('section','section');booking.dataset.part='types-form-requests';booking.append(title(worker?'د کاریګر ډولونه':'د بار موټر ډولونه',worker?'مسلک وټاکئ':'هر ډول بار'));
+  const types=make('div','vehicle-grid');typeCards.forEach(card=>{card.className='vehicle';const picture=card.querySelector('img');if(picture)picture.className='vehicle-photo';card.onclick=()=>{kindSelect();};function kindSelect(){$(c.kind).value=card.querySelector('b').textContent;typeCards.forEach(x=>x.classList.toggle('selected',x===card));form.scrollIntoView({behavior:'smooth',block:'center'});}card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();kindSelect();}};types.append(card);});booking.append(types);
+  const box=make('div','card');box.style.marginTop='12px';form.className='formgrid';
+  const gpsButton=$(c.p+'Gps'),gpsLabel=gpsButton.closest('label'),location=$(c.loc),locationLabel=location.closest('label');
+  const row=make('div','location-row');gpsButton.className='btn gold location-btn';row.append(location,gpsButton);locationLabel.append(row);gpsLabel.remove();
+  const kind=$(c.kind);kind.closest('label').hidden=true;
+  [find,message].forEach((b,i)=>{b.classList.remove('widebtn');b.style.width='100%';b.style.marginTop=i?'9px':'12px';});
+  box.append(form,find,message);booking.append(box,title(worker?'د کار تازه غوښتنې':'د بار تازه غوښتنې',worker?'د کاریګرو لپاره':'د موټروانانو لپاره'),requests);
+  const news=make('section','section');news.dataset.part='announcements';news.append(title('تازه اعلانونه','نور وګوره'));
+  const list=make('div','');list.id=c.p+'Announcements';news.append(list);
+  const installbar=make('div','installbar'),install=make('button','btn outline','⬇ اپلیکیشن نصب کړه');install.type='button';install.onclick=()=>document.querySelector('.install-top')?.click();installbar.append(install);news.append(installbar);
+  panel.replaceChildren(top,hero,shortcuts,booking,news);
+  const updateNews=()=>{const latest=records(s).slice(0,3);list.replaceChildren();if(!latest.length){list.append(make('div','card muted','تر اوسه اعلان نه سته.'));return;}latest.forEach(r=>{const card=make('div','card');const b=make('b','');b.textContent=r.vehicleType||c.title;const text=make('p','muted');text.textContent=r.pickup||r.from||'';const open=make('button','btn outline','تفصیل او پیغام');open.onclick=()=>showRequest(r.id);card.append(b,text,open);list.append(card);});};
+  updateNews();if(firebaseReady&&firebaseDb)firebaseDb.ref('rideAppData').on('value',()=>setTimeout(updateNews,0));
+ });
  renderAll();
 
 })();
 </script>
 
 <style id="cargo-worker-parity">
-.service-parity .service-box{border-radius:24px;background:linear-gradient(145deg,#0c2a48,#071827)}.service-parity .service-form{gap:10px}.service-parity .service-form input,.service-parity .service-form select,.service-parity .service-form textarea{padding:12px;border-radius:13px;border-color:#36516a;background:#081b2c}.service-parity .type-card,.service-parity .service-card{cursor:pointer}.service-parity .selected{outline:3px solid #f4b62f}.service-parity .service-hero{padding:14px;border-radius:20px}.service-parity .quick4 button{border-radius:17px}.service-parity button:disabled{opacity:.6}.service-parity .service-form label{font-size:12px}.service-parity .service-box p{line-height:1.8;color:#c8d4de}
+.service-parity .matched-showcase{width:100%;min-width:0;padding:14px;border-radius:20px;background:linear-gradient(135deg,#f4b62f,#ffd96f);color:#102238}
+.service-parity .ride-showcase-cars{grid-template-columns:repeat(3,minmax(0,1fr))}
+.service-parity .showcase-car{min-width:0;justify-content:flex-start}
+.service-parity .showcase-car img,.service-parity .showcase-car .service-photo-fallback{display:block;width:100%;height:125px;flex:0 0 125px;border-radius:13px;object-fit:contain;background:#fff}
+.service-parity .showcase-car span{display:block;width:100%;margin:8px 0 0;font-size:15px;line-height:1.4;min-height:2.8em}
+.service-parity .vehicle-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.service-parity .vehicle{min-width:0;display:flex;flex-direction:column;align-items:stretch;cursor:pointer}
+.service-parity .vehicle .vehicle-photo,.service-parity .vehicle .service-photo-fallback{height:86px;min-height:86px;max-height:86px;display:block;width:100%;object-fit:contain;border-radius:12px;margin:0 0 7px;background:#e9edf0}
+.service-parity .vehicle b{font-size:15px;line-height:1.4;min-height:2.8em;margin:0;overflow-wrap:anywhere}
+.service-parity .vehicle small{margin-top:auto}
+.service-parity .service-photo-fallback{display:flex!important;align-items:center;justify-content:center;font-size:42px}
+.service-parity .hero-real-photos .service-photo-fallback{height:145px;border:1px solid #35536d;border-radius:16px;background:#fff;color:#102238}
+.service-parity .selected{outline:2px solid #f4b62f}
+.service-parity button:disabled{opacity:.6}
+.service-parity label[hidden]{display:none!important}
+@media(max-width:520px){.service-parity .showcase-car img,.service-parity .showcase-car .service-photo-fallback{height:100px;flex-basis:100px}.service-parity .showcase-car span{font-size:13px}.service-parity .hero-real-photos .service-photo-fallback{height:145px}}
 </style>
 </body>
 </html>
