@@ -1458,7 +1458,6 @@ ${u.vehiclePhoto?`<img src="${u.vehiclePhoto}" alt="د موټر عکس">`:`<div 
   box.append(form,find,message);booking.append(box,title(worker?'د کار تازه غوښتنې':'د بار تازه غوښتنې',worker?'د کاریګرو لپاره':'د موټروانانو لپاره'),requests);
   const news=make('section','section');news.dataset.part='announcements';news.append(title('تازه اعلانونه','نور وګوره'));
   const list=make('div','');list.id=c.p+'Announcements';news.append(list);
-  const installbar=make('div','installbar'),install=make('button','btn outline','⬇ اپلیکیشن نصب کړه');install.type='button';install.onclick=()=>document.querySelector('.install-top')?.click();installbar.append(install);news.append(installbar);
   panel.replaceChildren(top,hero,shortcuts,booking,news);
   const updateNews=()=>{const latest=records(s).slice(0,3);list.replaceChildren();if(!latest.length){list.append(make('div','card muted','تر اوسه اعلان نه سته.'));return;}latest.forEach(r=>{const card=make('div','card');const b=make('b','');b.textContent=r.vehicleType||c.title;const text=make('p','muted');text.textContent=r.pickup||r.from||'';const open=make('button','btn outline','تفصیل او پیغام');open.onclick=()=>showRequest(r.id);card.append(b,text,open);list.append(card);});};
   updateNews();if(firebaseReady&&firebaseDb)firebaseDb.ref('rideAppData').on('value',()=>setTimeout(updateNews,0));
