@@ -54,7 +54,7 @@ textarea{min-height:80px}.full{grid-column:1/-1}
 .adminbox{background:#081b2c;border:1px solid #314d67;border-radius:18px;padding:14px}.hidden{display:none!important}
 .status.ok{color:#4be2a3}.status.wait{color:#ffd05d}.status.off{color:#ff7882}
 nav{position:fixed;bottom:0;left:0;right:0;background:#071827;border-top:1px solid #23415a;z-index:50;padding-bottom:env(safe-area-inset-bottom)}
-.navin{max-width:760px;margin:auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.navin{max-width:760px;margin:auto;display:grid;grid-template-columns:repeat(5,1fr)}
 nav button{background:none;border:0;color:#9fb0bf;padding:8px 4px;font-size:11px}nav button span{display:block;font-size:22px}nav button.active{color:var(--gold)}
 .installbar{display:flex;gap:10px;margin-top:12px}.installbar button{flex:1}
 .toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);z-index:99;background:#fff;color:#0a1a28;padding:10px 16px;border-radius:999px;display:none}
@@ -597,8 +597,8 @@ html,body{scroll-padding-top:145px!important}
 
 <main id="account" class="page">
 <section class="section">
-  <div class="section-title"><h2>🚘 د موټروالا نوی حساب</h2><small>یوازې موټروالان ځان ثبتوي</small></div>
-  <div class="notice" style="margin-bottom:10px">دا برخه یوازې د موټروان لپاره ده: نوی موټروان دلته ځان ثبتوي، او تایید شوی موټروان وروسته د موبایل شمېرې او پاسورډ په وسیله ننوځي. سواري کس حساب ته اړتیا نه لري.</div>
+  <div class="section-title"><h2>👤 د موټروان او کاریګر نوی حساب</h2><small>د سواري، باربرۍ او کاریګر لپاره</small></div>
+  <div class="notice" style="margin-bottom:10px">موټروان او کاریګر دلته نوی حساب جوړوي. د اډمین له تایید وروسته په خپل موبایل نمبر او پاسورډ ننوځي. مشتریان د خدمت غوښتلو لپاره حساب ته اړتیا نه لري.</div>
   <div class="card">
     <div class="formgrid">
       <label><span>نوم</span><input id="regName"></label>
@@ -617,7 +617,7 @@ html,body{scroll-padding-top:145px!important}
     <button type="button" class="btn gold" style="width:100%;margin-top:12px" data-t="sendApproval">د تایید لپاره واستوه</button>
   </div>
   <div class="card" style="margin-top:12px">
-    <h3 style="margin-top:0">🔑 د تایید شوي موټروان ننوتل</h3>
+    <h3 style="margin-top:0">🔑 د تایید شوي حساب ننوتل</h3>
     <div class="formgrid">
       <label><span>موبایل شمېره</span><input id="loginPhone" inputmode="tel"></label>
       <label><span>پاسورډ</span><input id="loginPassword" type="password" autocomplete="current-password"></label>
@@ -649,11 +649,12 @@ html,body{scroll-padding-top:145px!important}
 </main>
 </div>
 
-<nav><div class="navin">
-  <button type="button" class="active"><span>🏠</span><i data-t="home">کور</i></button>
-  <button type="button"><span>🚕</span><i>سواري</i></button>
-  <button type="button"><span>👤</span><i data-t="account">حساب</i></button>
-  <button type="button"><span>🔒</span><i data-t="adminShort">اډمین</i></button>
+<nav aria-label="اصلي برخې"><div class="navin">
+  <button type="button" class="active" data-page="home"><span>🏠</span><i data-nav-label="home">کور</i></button>
+  <button type="button" data-page="services"><span>🧭</span><i data-nav-label="services">خدمات</i></button>
+  <button type="button" data-page="account"><span>👤</span><i data-nav-label="account">حساب</i></button>
+  <button type="button" data-page="terms"><span>📋</span><i data-nav-label="terms">شرایط</i></button>
+  <button type="button" data-page="admin"><span>🔒</span><i data-nav-label="admin">اډمین</i></button>
 </div></nav>
 <div id="toast" class="toast"></div>
 
@@ -1061,7 +1062,7 @@ window.addEventListener("error",function(e){console.error(e.error||e.message)});
       e.preventDefault();
       var all=Array.from(document.querySelectorAll("nav button"));
       var i=all.indexOf(b);
-      return go(["home","post","account","admin"][i]||"home",b);
+      return go(b.dataset.page||"home",b);
     }
   }
   document.addEventListener("click",click,false);
@@ -1522,5 +1523,35 @@ function close(){dialog.close();document.body.classList.remove('helper-open');$(
 $('openServiceHelper').onclick=()=>{dialog.showModal();document.body.classList.add('helper-open');$('helperClose').focus()};$('helperClose').onclick=close;dialog.addEventListener('close',()=>document.body.classList.remove('helper-open'));$('helperClear').onclick=()=>{log.replaceChildren();message(c()[7])};$('lang').addEventListener('change',setup);
 $('helperForm').onsubmit=e=>{e.preventDefault();const q=$('helperInput').value.trim();if(!q)return;message(q,true);$('helperInput').value='';const n=norm(q);let scored=topics.map(t=>{const keys=norm(t[4]).split(' ').filter(w=>w.length>1);const words=n.split(' ');const score=keys.reduce((a,k)=>a+(words.includes(k)?2:0),0);return {t,score}}).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);if(!scored.length)message(c()[8]);else answer(scored[0].t);};setup();
 })();</script>
+
+<main id="services" class="page"><section class="section">
+<div class="section-title"><h2>خدمات</h2></div><p class="muted">خپل خدمت وټاکئ</p>
+<div class="services-menu">
+<button type="button" class="card" data-service-route="ride"><span>🚕</span><b>سواري</b><small>ټکسي، رکشه او کرایي موټر</small></button>
+<button type="button" class="card" data-service-route="bar"><span>🚚</span><b>باربري</b><small>د بار وړلو موټر پیدا کړه</small></button>
+<button type="button" class="card" data-service-route="worker"><span>👷</span><b>کاریګر</b><small>د خپل کار لپاره مسلکي کس پیدا کړه</small></button>
+</div></section></main>
+<main id="terms" class="page"><section class="section"><div class="section-title"><h2>📋 د اپلیکیشن د کارولو شرایط</h2></div>
+<div class="card terms-content">
+<p>اسحاقزاده انلاین خدمات د سواري، باربرۍ او کاریګر د موندلو او اړیکې نیولو لپاره دي.</p>
+<h3>۱. سم معلومات</h3><p>خپل سم نوم، د اړیکې شمېره، لوکیشن او د خدمت معلومات ثبت کړئ. جعلي حساب، دروغجن اعلان او د بل چا د معلوماتو کارول مه کوئ.</p>
+<h3>۲. د خدمت غوښتنه</h3><p>د موټر یا مسلک ډول وټاکئ، د لوکیشن اجازه ورکړئ او اړین معلومات ولیکئ. د بار د رسولو پته په روښانه ډول ولیکئ. د غوښتنې ثبت د خدمت د حتمي موندلو معنا نه لري.</p>
+<h3>۳. د موټروان او کاریګر حساب</h3><p>نوی حساب د اډمین تایید ته اړتیا لري. تایید د کار، موټر یا سفر د کیفیت او خوندیتوب تضمین نه دی. خپل پاسورډ له بل چا سره مه شریکوئ.</p>
+<h3>۴. کرایه او د کار بیه</h3><p>د خدمت له پیل مخکې کرایه، د بار اندازه، د کار حدود، وخت او د پیسو ورکولو طریقه له موټروان یا کاریګر سره روښانه کړئ. یوازې د غوښتنې ثبت د پیسو ورکړه نه ده.</p>
+<h3>۵. درناوی او خوندي استعمال</h3><p>سپکاوی، ځورونه، درغلي او د ناقانونه توکو لېږد مه کوئ. تر سفر یا کار مخکې د خدمت ورکوونکي او موټر معلومات وګورئ.</p>
+<h3>۶. لوکیشن او شخصي معلومات</h3><p>لوکیشن د نږدې خدمت او د ځای د موندلو لپاره کارېږي. په غوښتنو او پیغامونو کې یوازې اړین معلومات ولیکئ؛ پاسورډ، بانکي معلومات او د تذکرې عکس په عام اعلان کې مه خپروئ.</p>
+<h3>۷. ستونزه یا لغوه کول</h3><p>که پلان بدل شي، مقابل کس ژر خبر کړئ. د ستونزې په وخت کې د غوښتنې او پیغامونو معلومات وساتئ او له مسئول سره یې شریک کړئ.</p>
+<h3>۸. د AI تڼۍ</h3><p>دا تڼۍ اوس د اپلیکیشن چمتو لارښود دی؛ له ژوندۍ عمومي AI سره نه ده نښلول شوې. د خدمت شتون، بیه او رسېدل نه شي تضمینولای.</p>
+</div></section></main>
+<style>.navin{grid-template-columns:repeat(5,minmax(0,1fr))}nav button i{font-style:normal;font-weight:700}nav button{min-height:58px}.services-menu{display:grid;gap:12px}.services-menu button{display:flex;align-items:center;gap:14px;width:100%;color:#fff;text-align:start;cursor:pointer;border-color:#b79950}.services-menu button span{font-size:32px}.services-menu button b{font-size:21px}.services-menu button small{color:#b9c8d4}.terms-content{line-height:2}.terms-content h3{color:#ffd16a;margin-bottom:4px}.terms-content p{margin-top:0;color:#dce6ed}</style>
+<script>
+(function(){
+const labels={ps:{home:'کور',services:'خدمات',account:'حساب',terms:'شرایط',admin:'اډمین'},fa:{home:'خانه',services:'خدمات',account:'حساب',terms:'شرایط',admin:'مدیر'},en:{home:'Home',services:'Services',account:'Account',terms:'Terms',admin:'Admin'}};
+function navLabels(){const t=labels[document.getElementById('lang').value]||labels.ps;document.querySelectorAll('[data-nav-label]').forEach(e=>e.textContent=t[e.dataset.navLabel]);}
+document.getElementById('lang').addEventListener('change',navLabels);navLabels();
+document.querySelectorAll('[data-service-route]').forEach(b=>b.onclick=()=>{go('home',document.querySelector('nav [data-page="services"]'));document.querySelector('.project-card[data-project="'+b.dataset.serviceRoute+'"]').click();});
+})();
+</script>
+
 </body>
 </html>
